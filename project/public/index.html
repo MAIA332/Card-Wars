@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag and Drop Cards</title>
+    <link rel="stylesheet" href="./style/style.css">
+    <link rel="stylesheet" href="./style/default.css">
+</head>
+<body>
+    <div class="Boards">
+        <!-- -------- BOARDS ZONE ------- -->
+        <div class="Board opponent-board">
+            <h4>Oponente</h4>
+            <div class="dropzone table">
+                <div class="icon card-i" draggable="true">
+                    <h5>Card Title1</h5>
+                </div>
+            </div>
+        </div>
+        <!-- -------- BOARDS ZONE ------- -->
+        <div class="Board player-board">
+            <h4>Jogador</h4>
+            <div class="dropzone table">
+                <div class="icon card-i" draggable="true">
+                    <h5>Card Title2</h5>
+                </div>
+            </div>
+        </div>
+        <!-- -------- END BOARDS ZONE ------- -->
+    </div>
+
+    <script src="../modules/render-screen.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</body>
+</html>
+<script type="module">
+    const socket = io()
+
+    socket.on('connect', () => {
+        const playerId = socket.id
+        console.log(`Player connected on Client with id: ${playerId}`)
+    })
+
+</script>

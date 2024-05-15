@@ -1,0 +1,77 @@
+:root{
+    --smoothFPS: 0.5s;
+}
+
+.Boards {
+    height: 95vh;
+    /* width: 100%; */
+    /* display: flex; */
+}
+
+.Board {
+    width: 100%;
+    margin-top: 1%;
+    height: 50%;
+    /* border: 1px solid red; */
+    display: flex;
+}
+
+.Board h4 {
+    margin-bottom: 5%;
+    float: right;
+    position: absolute;
+    margin-left: 70%;
+}
+
+.dropzone {
+    height: auto;
+    border: 2px dashed #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+    display: flex;
+}
+
+.table{
+    width: 70%;
+    margin: 0 0 0 15%;
+}
+
+.card-i{
+    margin: 2%;
+    width: 11%;
+}
+
+.icon {
+    cursor: grab;
+}
+
+.icon.card-i {
+    height: 200px;
+}
+
+.icon.card-i{
+    background-color: var(--CardBackground);
+    transition: z-index var(--smoothFPS) ease; 
+}
+
+.its-over {
+    background-color: rgba(31, 168, 168, 0.267);
+}
+
+.is-dragging {
+    opacity: 0.5;
+}
+
+.icon.card-i:hover {
+    transform: scale(1.5); /* Scale the card on hover */
+    transition: transform var(--smoothFPS) ease; /* Smooth transition */
+    z-index: 1; /* Ensure the zoomed card is on top of other elements */
+}
+
+.player-board {
+    order: 2; /* A board do jogador será a segunda a ser exibida */
+}
+
+.opponent-board {
+    order: 1; /* A board do oponente será a primeira a ser exibida */
+}
