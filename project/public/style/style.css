@@ -62,12 +62,16 @@
     opacity: 0.5;
 }
 
-.icon.card-i:hover {
-    transform: scale(1.5); /* Scale the card on hover */
-    transition: transform var(--smoothFPS) ease; /* Smooth transition */
-    z-index: 1; /* Ensure the zoomed card is on top of other elements */
+.drag-enter{
+    border: 2px dashed blue;
 }
 
+/* .icon.card-i:hover {
+    transform: scale(1.5);
+    transition: transform var(--smoothFPS) ease; 
+    z-index: 1; 
+}
+ */
 .player-board {
     order: 2; /* A board do jogador será a segunda a ser exibida */
 }

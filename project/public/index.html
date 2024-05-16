@@ -13,7 +13,7 @@
         <div class="Board opponent-board">
             <h4>Oponente</h4>
             <div class="dropzone table">
-                <div class="icon card-i" draggable="true">
+                <div class="icon card-i" draggable="true" id="card1">
                     <h5>Card Title1</h5>
                 </div>
             </div>
@@ -22,7 +22,7 @@
         <div class="Board player-board">
             <h4>Jogador</h4>
             <div class="dropzone table">
-                <div class="icon card-i" draggable="true">
+                <div class="icon card-i" draggable="true" id="card2">
                     <h5>Card Title2</h5>
                 </div>
             </div>
@@ -30,16 +30,16 @@
         <!-- -------- END BOARDS ZONE ------- -->
     </div>
 
-    <script src="../modules/render-screen.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-</body>
 </html>
-<script type="module">
-    const socket = io()
+<script src="modules/render-screen.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 
-    socket.on('connect', () => {
-        const playerId = socket.id
-        console.log(`Player connected on Client with id: ${playerId}`)
+<script>
+    var socket = io();
+
+    socket.on('connect',function(){
+        
+        current_user = { id:socket.id };
+
     })
-
 </script>

@@ -1,43 +1,46 @@
-document.addEventListener('DOMContentLoaded', function () {
-    const cards = document.querySelectorAll('.card-i');
-    const dropzones = document.querySelectorAll('.dropzone');
+const icons = document.querySelectorAll('.icon');
 
-    cards.forEach(card => {
-        card.addEventListener('dragstart', dragstart);
-        card.addEventListener('dragend', dragend);
-    });
+let draggingIcon = null;
 
-    dropzones.forEach(dropzone => {
-        dropzone.addEventListener('dragover', dragover);
-        dropzone.addEventListener('dragenter', dragenter);
-        dropzone.addEventListener('dragleave', dragleave);
-        dropzone.addEventListener('drop', drop);
-    });
-
-    function dragstart() {
-        this.classList.add("is-dragging");
-    }
-
-    function dragend() {
-        this.classList.remove("is-dragging");
-    }
-
-    function dragenter(e) {
-        e.preventDefault();
-        this.classList.add('its-over');
-    }
-
-    function dragover(e) {
-        e.preventDefault();
-        const cardBeingDragged = document.querySelector('.is-dragging');
-        this.appendChild(cardBeingDragged);
-    }
-
-    function dragleave() {
-        this.classList.remove('its-over');
-    }
-
-    function drop() {
-        this.classList.remove('its-over');
-    }
+icons.forEach(icon => {
+    icon.addEventListener('dragstart', dragStart);
+    icon.addEventListener('dragend', dragEnd);
 });
+
+function dragStart() {
+    draggingIcon = this;
+    setTimeout(() => this.style.display = 'none', 0);
+}
+
+function dragEnd() {
+    draggingIcon = null;
+    this.style.display = 'block';
+}
+
+const dropzones = document.querySelectorAll('.dropzone');
+
+dropzones.forEach(dropzone => {
+    dropzone.addEventListener('dragover', dragOver);
+    dropzone.addEventListener('dragenter', dragEnter);
+    dropzone.addEventListener('dragleave', dragLeave);
+    dropzone.addEventListener('drop', drop);
+});
+
+function dragOver(e) {
+    e.preventDefault();
+    this.classList.add('.its-over');
+}
+
+function dragEnter(e) {
+    e.preventDefault();
+    this.classList.add('.drag-enter');
+}
+
+function dragLeave() {
+    this.classList.remove('.is-dragging');
+}
+
+function drop() {
+    this.classList.remove('.is-dragging');
+    this.appendChild(draggingIcon);
+}
