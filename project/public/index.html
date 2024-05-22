@@ -11,17 +11,16 @@
     <div class="Boards">
         <button class="deck" onclick="buy()">TESTE BOTAO COMPRA</button>
         <!-- -------- BOARDS ZONE ------- -->
-        <div class="Board opponent-board">
+        <div class="Board player2-board">
             <h4>Player2</h4>
             <div class="dropzone table">
                 
             </div>
         </div>
         <!-- -------- BOARDS ZONE ------- -->
-        <div class="Board player-board">
+        <div class="Board player1-board">
             <h4>Player1</h4>
             <div class="dropzone table">
-                
             </div>
         </div>
         <!-- -------- BOARDS ZONE ------- -->
@@ -55,33 +54,25 @@
                 const cardId = event.dataTransfer.getData('cardId');
                 console.log(`CARD ID CLIENT: ${cardId}`);
 
-                const zoneId = this.closest('.Board').classList[1];
-                console.log("ZONE ID ON DROP: ",zoneId);
-                socket.emit('jogada', { cardId, zoneId, current_user });
+                socket.emit('jogada', { current_user,cardId });
             });
         });
 
-        socket.on('atualizarTabuleiro', function(state) {
+        socket.on('atualizarTabuleiro', function(cards) {
 
-            const boards = state.boards;
-            console.log("BOARDS UPDATED: ", boards);
+            console.log("CARDS: ", cards);
 
-            Object.keys(boards).forEach(boardKey => {
-                const cards = boards[boardKey];
-                const dropzone = document.querySelector(`.${boardKey} .dropzone`);
-                dropzone.innerHTML = '';
+            let mycards = cards.filter((card)=>card.idPlayer == current_user.id)
+            let opponentCards = cards.filter((card)=>card.idPlayer!=current_user.id)
+            
+            if (mycards && opponentCards) {
+                console.log("MINHAS CARTAS: ",mycards);
+                console.log("CARTAS DO OPONENTE: ",opponentCards);
+            }
 
-                cards.forEach(card => {
-                    const cardElement = document.createElement('div');
-                    cardElement.classList.add('icon', 'card-i');
-                    cardElement.setAttribute('draggable', 'true');
-                    cardElement.id = card.cardId;
-                    cardElement.innerHTML = `<h5>Card ${card.cardId}</h5>`;
-                    cardElement.addEventListener('dragstart', dragStart);
-                    cardElement.addEventListener('dragend', dragEnd);
-                    dropzone.appendChild(cardElement);
-                });
-            });
+            clearBoards()
+            renderCards(cards)
+
         });
 
         const icons = document.querySelectorAll('.icon');
@@ -114,60 +105,55 @@
 
         function dragOver(e) {
             e.preventDefault();
-            console.log("dragOver");
         }
 
         function dragEnter(e) {
-            console.log("dragEnter");
             e.preventDefault();
-            this.classList.add('drag-enter');
         }
 
         function dragLeave() {
-            console.log("dragLeave");
             this.classList.remove('drag-enter');
         }
 
         function drop() {
-            console.log("drop");
             if (draggingIcon) {
                 this.classList.remove('drag-enter');
                 this.appendChild(draggingIcon);
             }
         }
 
-        function uuidv4() {
-            return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
-                (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
-            );
+        function renderCards(mycards) {
+
+             mycards.forEach(card=>{
+
+                const playerClass = card.idPlayer == current_user.id?'player1-board':'player2-board'
+                
+                const playerDropzone = document.querySelector(`.${playerClass} .dropzone`);
+
+                const card_template = document.createElement('div');
+                card_template.classList.add('icon', 'card-i');
+                card_template.setAttribute('draggable', 'true');
+
+                card_template.id = card.id;
+                card_template.innerHTML = `<h5>Card ${card.id}</h5>`;
+                card_template.addEventListener('dragstart', dragStart);
+                card_template.addEventListener('dragend', dragEnd);
+
+                playerDropzone.appendChild(card_template);
+            })
+            
         }
 
-        function generateCard() {
-            const card = document.createElement('div');
-            card.classList.add('icon', 'card-i');
-            card.setAttribute('draggable', 'true');
-
-            const cardId = uuidv4();
-            card.id = cardId;
-            card.innerHTML = `<h5>Card ${cardId}</h5>`;
-            card.addEventListener('dragstart', dragStart);
-            card.addEventListener('dragend', dragEnd);
-
-            return card;
+        function clearBoards(){
+            const dropzones = document.querySelectorAll(`.dropzone`);
+            
+            for (const dropzone of dropzones) {
+                dropzone.innerHTML = ''
+            }
         }
 
         function buy(){
-            const dropzonePlayerBoard = document.querySelector('.player-board .dropzone');
-            const card = generateCard();
-            
-            dropzonePlayerBoard.appendChild(card); // Adicionar o card à dropzone atual
-            let zoneId = "player-board"
-
-            console.log("IN THE FUNCTION BUY",card.id);
-            let cardId = card.id
-
-            console.log(dropzonePlayerBoard);
-            socket.emit("buy",{cardId,zoneId,current_user})
+            socket.emit("buy",{current_user})
         }
 
         

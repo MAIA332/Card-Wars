@@ -25,7 +25,15 @@
     float: right;
     position: absolute;
     margin-left: 70%;
-    color: var(--textColorBoard);
+    
+}
+
+.player1-board h4{
+    color: var(--blueTeam);
+}
+
+.player2-board h4{
+    color: var(--redTeam);
 }
 
 .graveyard-board h4{
@@ -82,13 +90,7 @@
     z-index: 1; 
 }
  */
-.player-board {
-    order: 2; /* A board do jogador será a segunda a ser exibida */
-}
 
-.opponent-board {
-    order: 1; /* A board do oponente será a primeira a ser exibida */
-}
 
 .deck{
     background-color: transparent;

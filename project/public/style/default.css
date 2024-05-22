@@ -3,6 +3,8 @@
     --CardBackground:#cccccc;
     --textColorBoard: #cecece;
     --smoothFPS: 0.5s;
+    --blueTeam:#767fff;
+    --redTeam: rgb(255, 45, 45);
 }
 
 *{
