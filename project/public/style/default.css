@@ -1,6 +1,8 @@
 :root{
     --MainBackground:#333;
     --CardBackground:#cccccc;
+    --textColorBoard: #cecece;
+    --smoothFPS: 0.5s;
 }
 
 *{

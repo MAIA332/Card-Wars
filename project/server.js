@@ -1,108 +1,120 @@
-import { log } from 'console';
-import { Socket } from 'dgram';
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 
+// Setup
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-
-// [ROTAS DO APP]
-/* app.get('/',(req,res)=>{
-    res.sendFile(__dirname,'/public/')
-}) */
+// Game state
 let tabuleiro = {};
-
 const Users = {};
 
 let boards = {
-    "player-board":[],
-    "opponent-board":[]
-}
+    "player-board": [],
+    "opponent-board": [],
+    "gravewyard-board": []
+};
 
-let lastboard = ""
+let lastboard = "player-board";
 
-// [SETUP DE SOCKET]
-io.on("connection",(socket)=>{
-    console.log("Client connected:",socket.id);
+// Routes
+/* app.get('/', (req, res) => {
+    res.sendFile(__dirname, '/public/');
+}); */
 
-    Users[socket.id] = {id:socket.id}; // Registra um usuário
-    tabuleiro[socket.id] = {"player-id":socket.id,"player-cards":[]}
+// Socket setup
+io.on("connection", (socket) => {
+    console.log("Client connected:", socket.id);
+
+    Users[socket.id] = { id: socket.id }; // Register user
+    tabuleiro[socket.id] = { "player-id": socket.id, "player-cards": [],"graveyard-board": [] };
 
     console.log("=========================================");
-    console.log("Users",Users);
-    console.log("Tabuleiro",tabuleiro);
-    console.log("Boards: ",boards);
+    console.log("Users", Users);
+    console.log("Tabuleiro", tabuleiro);
+    console.log("Boards: ", boards);
     console.log("=========================================");
 
-    socket.on('disconnect',()=>{
-        console.log("Cliente desconectado:",socket.id);
+    socket.on('disconnect', () => {
+        console.log("Client disconnected:", socket.id);
 
-        delete Users[socket.id]; // desregistra um usuário
-        delete tabuleiro[socket.id]; // desregistra um usuário do tabuleiro
-
+        // Unregister user and reset boards
+        delete Users[socket.id];
+        delete tabuleiro[socket.id];
         boards = {
-            "player-board":[],
-            "opponent-board":[]
-        }
+            "player-board": [],
+            "opponent-board": [],
+            "graveyard-board": []
+        };
+
+        let state = { tabuleiro, "zoneId": "player-board", boards };
+        io.emit('atualizarTabuleiro', state);
 
         console.log(Users);
     });
 
-    socket.on("buy", function(data){
-        let card ={ "cardId": data.cardId }
-        boards[data.zoneId].push(card);
-        tabuleiro[data.current_user.id]["player-cards"].push(card);
-        console.log("BOARD AFTER BUY",boards);
-        console.log("TABULEIRO AFTER BUY",tabuleiro);
+    socket.on("buy", (data) => {
+        let card = { "cardId": data.cardId };
+        
+        if (boards[data.zoneId]) {
+
+            boards[data.zoneId].push(card);
+            tabuleiro[data.current_user.id]["player-cards"].push(card);
+
+            console.log("BOARD AFTER BUY", boards);
+            console.log("TABULEIRO AFTER BUY", tabuleiro);
+
+            let state = { tabuleiro, "zoneId": data.zoneId, boards };
+            io.emit('atualizarTabuleiro', state);
+
+        } else {
+            console.error(`Invalid zoneId: ${data.zoneId}`);
+        }
     });
 
-    // Evento de jogada recebido do cliente
-    socket.on('jogada', function (data) {
+    socket.on('jogada', (data) => {
         console.log("WILL ADD: ", data.cardId);
-
-        // Criar o objeto card
         let card = { "cardId": data.cardId };
+        console.log("ZONE ID DENTRO DE JOGADA: ",data.zoneId);
 
-        // Adicionar o card ao tabuleiro do jogador atual
-        tabuleiro[data.current_user.id]["player-cards"].push(card);
+        // Remove the card from the player's card list in tabuleiro
+        let cardIndex = tabuleiro[data.current_user.id]["player-cards"].findIndex(existingCard => existingCard.cardId === card.cardId);
+        if (cardIndex > -1) {
+            tabuleiro[data.current_user.id]["player-cards"].splice(cardIndex, 1);
+        }
 
-        console.log("BOARDS: ", boards);
-
-        // Remover o card da board anterior, se houver
+        // Remove the card from the last board
         if (lastboard && boards[lastboard]) {
             boards[lastboard] = boards[lastboard].filter(existingCard => existingCard.cardId !== card.cardId);
         }
 
-        // Adicionar o card à board atual
-        boards[data.zoneId].push(card);
+        if (boards[data.zoneId]) {
+            // Add the card to the new board and player's card list
+            boards[data.zoneId].push(card);
+            tabuleiro[data.current_user.id]["player-cards"].push(card);
+            lastboard = data.zoneId;
 
-        // Atualizar a variável lastboard
-        lastboard = data.zoneId;
-        
-        console.log("LASTBOARD: ", lastboard);
+            console.log("LASTBOARD: ", lastboard);
+            console.log("CARD ADDED: ", card);
+            console.log("ZoneID", data.zoneId);
+            console.log("cardId", data.cardId);
+            console.log(tabuleiro);
 
-        // Log para depuração
-        console.log("INDEXOF: ", tabuleiro[data.current_user.id]["player-cards"].indexOf(card));
-        console.log("CARD ADDED: ", card);
-        console.log("ZoneID", data.zoneId);
-        console.log("cardId", data.cardId);
-        console.log(tabuleiro);
+            let state = { tabuleiro, "zoneId": data.zoneId, boards };
+            io.emit('atualizarTabuleiro', state);
 
-        let state = { tabuleiro, "zoneId": data.zoneId, boards };
-
-        // Emitir evento para atualizar todos os clientes com o novo estado do tabuleiro
-        io.emit('atualizarTabuleiro', state);
+        } else {
+            console.error(`Invalid zoneId: ${data.zoneId}`);
+        }
     });
 });
 
-// [SETUP PUBLIC]
+// Static files
 app.use(express.static('public'));
 
-// [START SERVER]
-
+// Start server
 server.listen(3000, () => {
     console.log(`> Server listening on port: 3000`);
 });

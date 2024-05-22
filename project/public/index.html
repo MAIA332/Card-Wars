@@ -9,20 +9,27 @@
 </head>
 <body>
     <div class="Boards">
-        <button onclick="buy()">TESTE BOTAO COMPRA</button>
+        <button class="deck" onclick="buy()">TESTE BOTAO COMPRA</button>
         <!-- -------- BOARDS ZONE ------- -->
         <div class="Board opponent-board">
-            <h4>Oponente</h4>
+            <h4>Player2</h4>
             <div class="dropzone table">
                 
             </div>
         </div>
         <!-- -------- BOARDS ZONE ------- -->
         <div class="Board player-board">
-            <h4>Jogador</h4>
+            <h4>Player1</h4>
             <div class="dropzone table">
                 
             </div>
+        </div>
+        <!-- -------- BOARDS ZONE ------- -->
+        <div class="Board graveyard-board">
+            
+            <h4>Graveyard</h4>
+            <div class="dropzone table"></div>
+
         </div>
         <!-- -------- END BOARDS ZONE ------- -->
     </div>
@@ -32,48 +39,46 @@
     <script>
         var socket = io();
 
-        socket.on('connect',function(){
-            current_user = { id:socket.id };
+        socket.on('connect', function() {
+            current_user = { id: socket.id };
         });
 
         document.querySelectorAll('.dropzone').forEach(dropzone => {
+            dropzone.addEventListener('dragover', function(event) {
+                event.preventDefault();
+            });
 
             dropzone.addEventListener('drop', function(event) {
-                
+
                 event.preventDefault();
+
                 const cardId = event.dataTransfer.getData('cardId');
                 console.log(`CARD ID CLIENT: ${cardId}`);
 
-                const zoneId = this.closest('.Board').classList[1]; // ID da zona de soltura é a segunda classe da Board (opponent-board ou player-board)
-                socket.emit('jogada', { cardId, zoneId,current_user });
+                const zoneId = this.closest('.Board').classList[1];
+                console.log("ZONE ID ON DROP: ",zoneId);
+                socket.emit('jogada', { cardId, zoneId, current_user });
             });
-
         });
 
-        // Receber atualizações do servidor
         socket.on('atualizarTabuleiro', function(state) {
-            let tabuleiro = state.tabuleiro;
-            let zoneId = state.zoneId;
-            let boards = state.boards;
 
-            console.log(boards);
+            const boards = state.boards;
+            console.log("BOARDS UPDATED: ", boards);
 
-            // Atualizar o tabuleiro com os dados recebidos do servidor
             Object.keys(boards).forEach(boardKey => {
-                const cards = boards[boardKey]; // Obter as cartas correspondentes à board atual
-
-                const dropzone = document.querySelector(`.${boardKey} .dropzone`); // Selecionar a dropzone dentro da zona de soltura correta
-                
-                // Limpar a zona de soltura
+                const cards = boards[boardKey];
+                const dropzone = document.querySelector(`.${boardKey} .dropzone`);
                 dropzone.innerHTML = '';
 
-                // Adicionar as cartas atualizadas
                 cards.forEach(card => {
                     const cardElement = document.createElement('div');
                     cardElement.classList.add('icon', 'card-i');
                     cardElement.setAttribute('draggable', 'true');
-                    cardElement.id = card.cardId; // Ajuste para acessar corretamente o ID do card
-                    cardElement.innerHTML = `<h5>Card ${card.cardId}</h5>`; // Você pode ajustar isso conforme necessário
+                    cardElement.id = card.cardId;
+                    cardElement.innerHTML = `<h5>Card ${card.cardId}</h5>`;
+                    cardElement.addEventListener('dragstart', dragStart);
+                    cardElement.addEventListener('dragend', dragEnd);
                     dropzone.appendChild(cardElement);
                 });
             });
@@ -87,7 +92,8 @@
             icon.addEventListener('dragend', dragEnd);
         });
 
-        function dragStart() {
+        function dragStart(event) {
+            event.dataTransfer.setData('cardId', this.id);
             draggingIcon = this;
             setTimeout(() => this.style.display = 'none', 0);
         }
@@ -140,9 +146,13 @@
             const card = document.createElement('div');
             card.classList.add('icon', 'card-i');
             card.setAttribute('draggable', 'true');
-            const cardId = uuidv4(); // Gere um ID único para o card
+
+            const cardId = uuidv4();
             card.id = cardId;
-            card.innerHTML = `<h5>Card ${cardId}</h5>`; // Você pode ajustar isso conforme necessário
+            card.innerHTML = `<h5>Card ${cardId}</h5>`;
+            card.addEventListener('dragstart', dragStart);
+            card.addEventListener('dragend', dragEnd);
+
             return card;
         }
 

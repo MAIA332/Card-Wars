@@ -1,6 +1,3 @@
-:root{
-    --smoothFPS: 0.5s;
-}
 
 .Boards {
     height: 95vh;
@@ -16,11 +13,24 @@
     display: flex;
 }
 
+.graveyard-board{
+    width: 12%;
+    margin: -20% 0 0 87%;
+    height: 280px;
+    position: absolute;
+}
+
 .Board h4 {
     margin-bottom: 5%;
     float: right;
     position: absolute;
     margin-left: 70%;
+    color: var(--textColorBoard);
+}
+
+.graveyard-board h4{
+    margin: 4% 0 0 30%;
+    padding: 0;
 }
 
 .dropzone {
@@ -78,4 +88,13 @@
 
 .opponent-board {
     order: 1; /* A board do oponente será a primeira a ser exibida */
+}
+
+.deck{
+    background-color: transparent;
+    height: 200px;
+    border: 1px solid var(--textColorBoard);
+    position: absolute;
+    cursor: pointer;
+    margin: 30% 0 0 3%;
 }
