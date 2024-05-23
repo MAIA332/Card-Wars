@@ -2,7 +2,8 @@ class Card{
 
     constructor(idPlayer){
         this.id = this.uuidv4()
-        this.idPlayer = idPlayer
+        this.idPlayer = idPlayer;
+        this.zone = 'playable'; // Adicionando uma propriedade zone para rastrear onde a carta está
     }
 
     uuidv4() {

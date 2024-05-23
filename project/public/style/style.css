@@ -15,7 +15,7 @@
 
 .graveyard-board{
     width: 12%;
-    margin: -20% 0 0 87%;
+    margin: -35% 0 0 87%;
     height: 280px;
     position: absolute;
 }
@@ -94,9 +94,44 @@
 
 .deck{
     background-color: transparent;
-    height: 200px;
+    width: 10%;
+    height: 250px;
     border: 1px solid var(--textColorBoard);
     position: absolute;
     cursor: pointer;
-    margin: 30% 0 0 3%;
+    margin: 15% 0 0 3%;
+}
+
+.pass-turn{
+    background-color: transparent;
+    width: 10%;
+    height: 100px;
+    border: 1px solid var(--textColorBoard);
+    position: absolute;
+    cursor: pointer;
+    margin: 35% 0 0 89%;
+}
+
+.game-stats{
+    position: absolute;
+    margin: 0 0 0 1%;
+}
+
+.game-stats #turn-view{
+    color: var(--textColorBoard);
+}
+
+.player-hud{
+    position: absolute;
+    margin: -10% 0 0 1%;
+}
+
+.player-hud h4, .player-hud b{
+    color: var(--textColorBoard);
+    font-size: 1.2em;
+}
+
+.disabled {
+    pointer-events: none; /* Impede qualquer interação com os elementos */
+    opacity: 0.5; /* Visualmente indica que o elemento está desativado */
 }

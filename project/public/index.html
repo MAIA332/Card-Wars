@@ -9,34 +9,47 @@
 </head>
 <body>
     <div class="Boards">
-        <button class="deck" onclick="buy()">TESTE BOTAO COMPRA</button>
+
+        <div class="game-stats">
+            <h4 id="turn-view">SEU TURNO</h4>
+        </div>
+
+        <button class="deck" id="deck" onclick="buy()">DECK</button>
+        <button class="pass-turn" id="pass-turn" onclick="endTurn()">FIM DO TURNO</button>
         <!-- -------- BOARDS ZONE ------- -->
         <div class="Board player2-board">
-            <h4>Player2</h4>
-            <div class="dropzone table">
+            <h4>Oponente</h4>
+            <div class="dropzone table data-zone="playable"">
                 
             </div>
         </div>
         <!-- -------- BOARDS ZONE ------- -->
         <div class="Board player1-board">
-            <h4>Player1</h4>
-            <div class="dropzone table">
+            <h4>Você</h4>
+            <div class="dropzone table data-zone="playable"">
             </div>
         </div>
         <!-- -------- BOARDS ZONE ------- -->
         <div class="Board graveyard-board">
             
             <h4>Graveyard</h4>
-            <div class="dropzone table"></div>
+            <div class="dropzone table" data-zone="graveyard"></div>
 
         </div>
         <!-- -------- END BOARDS ZONE ------- -->
+        <div class="player-hud">
+            <h4>id: <b id="player-id">id</b></h4>
+            <h4>Vida: <b id="player-life">20</b></h4>
+            <h4>Círculo: <b id="player-circle">5</b></h4>
+            <h4>Energia: <b id="player-energy">4</b></h4>
+        </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
 
     <script>
         var socket = io();
+        var currentTurn = null;
 
         socket.on('connect', function() {
             current_user = { id: socket.id };
@@ -54,7 +67,9 @@
                 const cardId = event.dataTransfer.getData('cardId');
                 console.log(`CARD ID CLIENT: ${cardId}`);
 
-                socket.emit('jogada', { current_user,cardId });
+                const zone = this.getAttribute('data-zone');
+
+                socket.emit('jogada', { current_user,cardId,zone });
             });
         });
 
@@ -62,16 +77,18 @@
 
             console.log("CARDS: ", cards);
 
-            let mycards = cards.filter((card)=>card.idPlayer == current_user.id)
-            let opponentCards = cards.filter((card)=>card.idPlayer!=current_user.id)
-            
+            let mycards = cards.filter((card)=>card.idPlayer == current_user.id && card.zone != 'graveyard')
+            let opponentCards = cards.filter((card)=>card.idPlayer!=current_user.id && card.zone != 'graveyard')
+            let graveyardCards = cards.filter(card => card.zone == 'graveyard');
+
             if (mycards && opponentCards) {
                 console.log("MINHAS CARTAS: ",mycards);
                 console.log("CARTAS DO OPONENTE: ",opponentCards);
+                console.log("CARTAS NO CEMITÉRIO: ", graveyardCards);
             }
 
             clearBoards()
-            renderCards(cards)
+            renderCards(mycards, opponentCards, graveyardCards);
 
         });
 
@@ -122,28 +139,34 @@
             }
         }
 
-        function renderCards(mycards) {
+        function renderCards(mycards, opponentCards, graveyardCards) {
+            mycards.forEach(card => {
+                renderCard(card, 'player1-board');
+            });
 
-             mycards.forEach(card=>{
+            opponentCards.forEach(card => {
+                renderCard(card, 'player2-board');
+            });
 
-                const playerClass = card.idPlayer == current_user.id?'player1-board':'player2-board'
-                
-                const playerDropzone = document.querySelector(`.${playerClass} .dropzone`);
-
-                const card_template = document.createElement('div');
-                card_template.classList.add('icon', 'card-i');
-                card_template.setAttribute('draggable', 'true');
-
-                card_template.id = card.id;
-                card_template.innerHTML = `<h5>Card ${card.id}</h5>`;
-                card_template.addEventListener('dragstart', dragStart);
-                card_template.addEventListener('dragend', dragEnd);
-
-                playerDropzone.appendChild(card_template);
-            })
-            
+            graveyardCards.forEach(card => {
+                renderCard(card, 'graveyard-board');
+            });
         }
 
+        function renderCard(card, boardClass) {
+            const playerDropzone = document.querySelector(`.${boardClass} .dropzone`);
+
+            const card_template = document.createElement('div');
+            card_template.classList.add('icon', 'card-i');
+            card_template.setAttribute('draggable', 'true');
+            card_template.id = card.id;
+            card_template.innerHTML = `<h5>Card ${card.id}</h5>`;
+            card_template.addEventListener('dragstart', dragStart);
+            card_template.addEventListener('dragend', dragEnd);
+
+            playerDropzone.appendChild(card_template);
+        }
+            
         function clearBoards(){
             const dropzones = document.querySelectorAll(`.dropzone`);
             
@@ -156,6 +179,57 @@
             socket.emit("buy",{current_user})
         }
 
+        function updateTurnUI() {
+
+            document.querySelectorAll('.dropzone').forEach(dropzone => {
+                const deck = document.getElementById('deck')
+                
+                if (current_user.id != currentTurn) {
+                    
+                    deck.disabled = true
+                    dropzone.classList.add('disabled');
+
+                } else {
+                    deck.disabled = false
+                    dropzone.classList.remove('disabled');
+                }
+            });
+            
+            const turnIndicator = document.getElementById('turn-view')
+
+            turnIndicator.innerText =  current_user.id == currentTurn?"SEU TURNO":"TURNO DO OPONENTE"
+
+            const endTurnButton = document.getElementById('pass-turn');
+            endTurnButton.disabled = current_user.id !== currentTurn;
+        }
+
+        socket.on('turnoAtual', function(turn) {
+            currentTurn = turn;
+            console.log("TURNO ATUAL:",currentTurn);
+            updateTurnUI();
+        });
+
+        function endTurn() {
+            socket.emit("endTurn", { current_user });
+        }
+
+        socket.on('atualizaPlayers',function(players){
+            let lifeHud = document.getElementById('player-life')
+            let idHud = document.getElementById('player-id')
+            let circleHud = document.getElementById('player-circle')
+            let energyHud = document.getElementById('player-energy')
+            
+            console.log("MEU ID",current_user.id);
+            let myObj = players.filter((player)=>player.id == current_user.id)
+
+            console.log("OBJETO PLAYER: ",myObj);
+            if (myObj) {
+               lifeHud.innerText = myObj[0].life
+               idHud.innerText = current_user.id
+               circleHud.innerText = myObj[0].circle
+               energyHud.innerText = myObj[0].energy
+            }
+        })
         
     </script>
 </body>
