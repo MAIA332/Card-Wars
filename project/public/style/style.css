@@ -9,7 +9,7 @@
     width: 100%;
     margin-top: 1%;
     height: 50%;
-    /* border: 1px solid red; */
+    /* border: 1px solid red */;
     display: flex;
 }
 
@@ -19,6 +19,8 @@
     height: 280px;
     position: absolute;
 }
+
+
 
 .Board h4 {
     margin-bottom: 5%;
@@ -47,11 +49,6 @@
     padding: 10px;
     margin-bottom: 10px;
     display: flex;
-}
-
-.table{
-    width: 70%;
-    margin: 0 0 0 15%;
 }
 
 .card-i{
@@ -83,13 +80,6 @@
 .drag-enter{
     border: 2px dashed blue;
 }
-
-/* .icon.card-i:hover {
-    transform: scale(1.5);
-    transition: transform var(--smoothFPS) ease; 
-    z-index: 1; 
-}
- */
 
 
 .deck{
@@ -134,4 +124,25 @@
 .disabled {
     pointer-events: none; /* Impede qualquer interação com os elementos */
     opacity: 0.5; /* Visualmente indica que o elemento está desativado */
+}
+
+.non-interactive{
+    pointer-events: none;
+}
+
+.graveyard{
+    margin: 0;
+    width: 100%;
+}
+
+.commander{
+    margin: 5% 0 0 17%;
+    width: 10%;
+    height: 280px;
+    position: absolute;
+}
+
+.onboard{
+    margin: 0 0 0 30%;
+    width: 54%;
 }

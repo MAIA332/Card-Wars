@@ -19,21 +19,27 @@
         <!-- -------- BOARDS ZONE ------- -->
         <div class="Board player2-board">
             <h4>Oponente</h4>
-            <div class="dropzone table data-zone="playable"">
+            <div class="dropzone table onboard" data-zone="playable" zone-type="onboard">
+                
+            </div>
+            <div class="dropzone table commander" data-zone="playable" zone-type="commander">
                 
             </div>
         </div>
         <!-- -------- BOARDS ZONE ------- -->
         <div class="Board player1-board">
             <h4>Você</h4>
-            <div class="dropzone table data-zone="playable"">
+            <div class="dropzone table onboard" data-zone="playable" zone-type="onboard">
+            </div>
+            <div class="dropzone table commander" data-zone="playable" zone-type="commander">
+                
             </div>
         </div>
         <!-- -------- BOARDS ZONE ------- -->
         <div class="Board graveyard-board">
             
             <h4>Graveyard</h4>
-            <div class="dropzone table" data-zone="graveyard"></div>
+            <div class="dropzone table graveyard non-interactive" data-zone="graveyard" zone-type="graveyard"></div>
 
         </div>
         <!-- -------- END BOARDS ZONE ------- -->
@@ -68,8 +74,9 @@
                 console.log(`CARD ID CLIENT: ${cardId}`);
 
                 const zone = this.getAttribute('data-zone');
+                const zoneType = this.getAttribute('zone-type')
 
-                socket.emit('jogada', { current_user,cardId,zone });
+                socket.emit('jogada', { current_user,cardId,zone,zoneType });
             });
         });
 

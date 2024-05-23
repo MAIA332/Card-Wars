@@ -31,6 +31,7 @@ function getNextPlayer() {
 
 // Socket setup
 io.on("connection", (socket) => {
+
     console.log("Client connected:", socket.id);
 
     Users.push({ id: socket.id }); // Register user
@@ -105,15 +106,34 @@ io.on("connection", (socket) => {
 
             if (data.zone === 'graveyard') {
                 cards[movedCardIndex].zone = 'graveyard';
+                cards[movedCardIndex].zoneType = 'graveyard'
+                
                 //cards[movedCardIndex].idPlayer = "ou-of-game";
+                console.log(`A CARTA DO ÍNDICE ${movedCardIndex} FOI MOVIDA PARA ${data.zoneType} QUE POSSUI A PROPRIEDADE ${data.zone} PELO JOGADOR: ${data.current_user.id}`);
 
-            } else {
+
+            } 
+            else if(data.zone === 'commander'){
+                cards[movedCardIndex].zone = 'playable';
+                cards[movedCardIndex].zoneType = 'commander'
+
+                console.log(`A CARTA DO ÍNDICE ${movedCardIndex} FOI MOVIDA PARA ${data.zoneType} QUE POSSUI A PROPRIEDADE ${data.zone} PELO JOGADOR: ${data.current_user.id}`);
+            }   
+            
+            else {
 
                 cards[movedCardIndex].zone = 'playable';
 
-                let idAlterPlayer = Users.filter(user => user.id != data.current_user.id); // ID do player oponente
-                cards[movedCardIndex].idPlayer = idAlterPlayer[0].id; // Atualiza o campo idPlayer do cartão movido
+                //let idAlterPlayer = Users.filter(user => user.id != data.current_user.id); // ID do player oponente
+                //cards[movedCardIndex].idPlayer = idAlterPlayer[0].id; // Atualiza o campo idPlayer do cartão movido
+                
+                cards[movedCardIndex].idPlayer = data.current_user.id
+                cards[movedCardIndex].zoneType = data.zoneType
+
+                console.log(`A CARTA DO ÍNDICE ${movedCardIndex} FOI MOVIDA PARA ${data.zoneType} QUE POSSUI A PROPRIEDADE ${data.zone} PELO JOGADOR: ${data.current_user.id}`);
             }
+
+            
         }
 
         state ={boards,Users,cards,currentTurn }
