@@ -17,7 +17,7 @@
         <button class="deck" id="deck" onclick="buy()">DECK</button>
         <button class="pass-turn" id="pass-turn" onclick="endTurn()">FIM DO TURNO</button>
         <!-- -------- BOARDS ZONE ------- -->
-        <div class="Board player2-board">
+        <div class="Board player2-board player2-commander">
             <h4>Oponente</h4>
             <div class="dropzone table onboard" data-zone="playable" zone-type="onboard">
                 
@@ -27,7 +27,7 @@
             </div>
         </div>
         <!-- -------- BOARDS ZONE ------- -->
-        <div class="Board player1-board">
+        <div class="Board player1-board player1-commander">
             <h4>Você</h4>
             <div class="dropzone table onboard" data-zone="playable" zone-type="onboard">
             </div>
@@ -44,7 +44,7 @@
         </div>
         <!-- -------- END BOARDS ZONE ------- -->
         <div class="player-hud">
-            <h4>id: <b id="player-id">id</b></h4>
+           <!--  <h4>id: <b id="player-id">id</b></h4> -->
             <h4>Vida: <b id="player-life">20</b></h4>
             <h4>Círculo: <b id="player-circle">5</b></h4>
             <h4>Energia: <b id="player-energy">4</b></h4>
@@ -84,18 +84,22 @@
 
             console.log("CARDS: ", cards);
 
-            let mycards = cards.filter((card)=>card.idPlayer == current_user.id && card.zone != 'graveyard')
-            let opponentCards = cards.filter((card)=>card.idPlayer!=current_user.id && card.zone != 'graveyard')
+            let mycards = cards.filter((card)=>card.idPlayer == current_user.id && card.zone != 'graveyard' && card.zoneType != 'commander')
+            let opponentCards = cards.filter((card)=>card.idPlayer!=current_user.id && card.zone != 'graveyard' && card.zoneType != 'commander')
             let graveyardCards = cards.filter(card => card.zone == 'graveyard');
+            let myCommandersCard = cards.filter(card =>card.zoneType == 'commander' && card.idPlayer == current_user.id)
+            let opponentCommandersCards =cards.filter(card =>card.zoneType == 'commander' && card.idPlayer != current_user.id)
 
             if (mycards && opponentCards) {
                 console.log("MINHAS CARTAS: ",mycards);
                 console.log("CARTAS DO OPONENTE: ",opponentCards);
                 console.log("CARTAS NO CEMITÉRIO: ", graveyardCards);
+                console.log("CARTA NA MINHA ZONA DE COMANDO: ",myCommandersCard);
+                console.log("CARTA MINHA ZONA DE COMANDO DO OPONENTE: ",opponentCommandersCards);
             }
 
             clearBoards()
-            renderCards(mycards, opponentCards, graveyardCards);
+            renderCards(mycards, opponentCards, graveyardCards,myCommandersCard,opponentCommandersCards);
 
         });
 
@@ -146,7 +150,7 @@
             }
         }
 
-        function renderCards(mycards, opponentCards, graveyardCards) {
+        function renderCards(mycards, opponentCards, graveyardCards,myCommandersCard,opponentCommandersCards) {
             mycards.forEach(card => {
                 renderCard(card, 'player1-board');
             });
@@ -158,10 +162,23 @@
             graveyardCards.forEach(card => {
                 renderCard(card, 'graveyard-board');
             });
+
+            myCommandersCard.forEach(card => {
+                renderCard(card, 'player1-commander');
+            });
+
+            opponentCommandersCards.forEach(card=>{
+                renderCard(card, 'player2-commander');
+            });
         }
 
         function renderCard(card, boardClass) {
-            const playerDropzone = document.querySelector(`.${boardClass} .dropzone`);
+
+            let playerDropzone = document.querySelector(`.${boardClass} .dropzone`);
+
+            if (boardClass == 'player1-commander' || boardClass == 'player2-commander') {
+                playerDropzone = playerDropzone[1]
+            }
 
             const card_template = document.createElement('div');
             card_template.classList.add('icon', 'card-i');
@@ -230,9 +247,10 @@
             let myObj = players.filter((player)=>player.id == current_user.id)
 
             console.log("OBJETO PLAYER: ",myObj);
+
             if (myObj) {
                lifeHud.innerText = myObj[0].life
-               idHud.innerText = current_user.id
+               /* idHud.innerText = current_user.id */
                circleHud.innerText = myObj[0].circle
                energyHud.innerText = myObj[0].energy
             }
