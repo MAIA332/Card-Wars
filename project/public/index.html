@@ -61,7 +61,7 @@
     <script>
         var socket = io();
         var currentTurn = null;
-        let turnTimeLimit = 10; // Tempo limite do turno em segundos
+        let myturnTimeLimit = 10; // Tempo limite do turno em segundos
         let playerTurnTimer = null;
 
         socket.on('connect', function() {
@@ -244,16 +244,26 @@
         socket.on('turnoAtual', function(turn) {
             currentTurn = turn;
             updateTurnUI(); // Atualize a interface do usuário com o novo turno
-            if (currentTurn === 'player1' || currentTurn === 'player2') {
-                startPlayerTurnTimer(); // Inicie o contador de tempo do turno do jogador atual
+
+            if (current_user.id != currentTurn) {
+                stopPlayerTurnTimer();
+                console.log("TURNO DO OPONENTE", myturnTimeLimit);
+
             } else {
-                stopPlayerTurnTimer(); // Pare o contador de tempo se não for o turno de um jogador
+                myturnTimeLimit = 10; // Reinicie o tempo limite do turno para 10 segundos
+
+                updateTurnTimeUI(myturnTimeLimit);
+                
+                stopPlayerTurnTimer();
+                startPlayerTurnTimer(); // Inicie o contador de tempo do turno do jogador atual
+
+                console.log("MEU TURNO",myturnTimeLimit);
             }
         });
 
         function endTurn() {
             // Pare o contador de tempo do turno
-            stopPlayerTurnTimer(); // Pare o contador de tempo do turno do jogador atual
+            stopPlayerTurnTimer()
             socket.emit("endTurn", { current_user });
         }
 
@@ -288,25 +298,26 @@
 
         // Função para iniciar o contador de tempo do turno
         function startPlayerTurnTimer() {
-        playerTurnTimer = setInterval(() => {
-            if (turnTimeLimit > 0) {
-                turnTimeLimit--;
-                updateTurnTimeUI(); // Atualize a interface do usuário com o tempo restante do turno
-            } else {
-                endTurn(); // Se o tempo limite do turno acabar, encerre o turno
-            }
+            playerTurnTimer = setInterval(() => {
+                if (myturnTimeLimit > 0) {
+                    myturnTimeLimit--;
+                    updateTurnTimeUI(myturnTimeLimit); // Atualize a interface do usuário com o tempo restante do turno
+                } else {
+                    endTurn(); // Se o tempo limite do turno acabar, encerre o turno
+                }
         }, 1000); // Intervalo de atualização do contador (1 segundo)
-        }
+}
         // Função para parar o contador de tempo do turno
         function stopPlayerTurnTimer() {
             clearInterval(playerTurnTimer);
+
         }
 
         // Restante do seu código...
 
         // Função para atualizar a interface do usuário com o tempo restante do turno
-        function updateTurnTimeUI() {
-            document.getElementById('timer-display').textContent = turnTimeLimit;
+        function updateTurnTimeUI(timerLimit) {
+            document.getElementById('timer-display').textContent = timerLimit;
         }
     </script>
 </body>
