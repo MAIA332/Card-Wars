@@ -8,30 +8,35 @@
     <link rel="stylesheet" href="./style/default.css">
 </head>
 <body>
+    <!-- ============================================== -->
+    <audio id="woodOnTable" src="./audios/woodOnTable.mp3"></audio>
+    <audio id="flip-sound" src="./audios/flip.mp3"></audio>
+    <!-- ============================================== -->
     <div class="Boards">
 
         <div class="game-stats">
             <h4 id="turn-view">SEU TURNO</h4>
+            <div id="turn-timer">Tempo restante do turno: <span id="timer-display">60</span> segundos</div>
         </div>
 
         <button class="deck" id="deck" onclick="buy()">DECK</button>
         <button class="pass-turn" id="pass-turn" onclick="endTurn()">FIM DO TURNO</button>
         <!-- -------- BOARDS ZONE ------- -->
-        <div class="Board player2-board player2-commander">
+        <div class="Board player2-board non-interactive">
             <h4>Oponente</h4>
             <div class="dropzone table onboard" data-zone="playable" zone-type="onboard">
                 
             </div>
-            <div class="dropzone table commander" data-zone="playable" zone-type="commander">
+            <div class="dropzone table commander player2-commander" data-zone="playable" zone-type="commander">
                 
             </div>
         </div>
         <!-- -------- BOARDS ZONE ------- -->
-        <div class="Board player1-board player1-commander">
+        <div class="Board player1-board">
             <h4>Você</h4>
             <div class="dropzone table onboard" data-zone="playable" zone-type="onboard">
             </div>
-            <div class="dropzone table commander" data-zone="playable" zone-type="commander">
+            <div class="dropzone table commander player1-commander" data-zone="playable" zone-type="commander">
                 
             </div>
         </div>
@@ -56,6 +61,8 @@
     <script>
         var socket = io();
         var currentTurn = null;
+        let turnTimeLimit = 10; // Tempo limite do turno em segundos
+        let playerTurnTimer = null;
 
         socket.on('connect', function() {
             current_user = { id: socket.id };
@@ -76,6 +83,10 @@
                 const zone = this.getAttribute('data-zone');
                 const zoneType = this.getAttribute('zone-type')
 
+                const woodaudio = document.getElementById('woodOnTable');
+                woodaudio.currentTime = 0.1
+                woodaudio.play();
+                
                 socket.emit('jogada', { current_user,cardId,zone,zoneType });
             });
         });
@@ -175,10 +186,13 @@
         function renderCard(card, boardClass) {
 
             let playerDropzone = document.querySelector(`.${boardClass} .dropzone`);
-
+            
             if (boardClass == 'player1-commander' || boardClass == 'player2-commander') {
-                playerDropzone = playerDropzone[1]
+                playerDropzone = document.querySelector(`.${boardClass}`);
+                
             }
+
+            console.log("PLAYER DROPZONE TO DO: ",playerDropzone);
 
             const card_template = document.createElement('div');
             card_template.classList.add('icon', 'card-i');
@@ -229,11 +243,17 @@
 
         socket.on('turnoAtual', function(turn) {
             currentTurn = turn;
-            console.log("TURNO ATUAL:",currentTurn);
-            updateTurnUI();
+            updateTurnUI(); // Atualize a interface do usuário com o novo turno
+            if (currentTurn === 'player1' || currentTurn === 'player2') {
+                startPlayerTurnTimer(); // Inicie o contador de tempo do turno do jogador atual
+            } else {
+                stopPlayerTurnTimer(); // Pare o contador de tempo se não for o turno de um jogador
+            }
         });
 
         function endTurn() {
+            // Pare o contador de tempo do turno
+            stopPlayerTurnTimer(); // Pare o contador de tempo do turno do jogador atual
             socket.emit("endTurn", { current_user });
         }
 
@@ -256,6 +276,38 @@
             }
         })
         
+        document.addEventListener('DOMContentLoaded', () => {
+            const playButton = document.getElementById('deck');
+            const audio = document.getElementById('flip-sound');
+
+            playButton.addEventListener('click', () => {
+                audio.currentTime = 0.1
+                audio.play();
+            });
+        });
+
+        // Função para iniciar o contador de tempo do turno
+        function startPlayerTurnTimer() {
+        playerTurnTimer = setInterval(() => {
+            if (turnTimeLimit > 0) {
+                turnTimeLimit--;
+                updateTurnTimeUI(); // Atualize a interface do usuário com o tempo restante do turno
+            } else {
+                endTurn(); // Se o tempo limite do turno acabar, encerre o turno
+            }
+        }, 1000); // Intervalo de atualização do contador (1 segundo)
+        }
+        // Função para parar o contador de tempo do turno
+        function stopPlayerTurnTimer() {
+            clearInterval(playerTurnTimer);
+        }
+
+        // Restante do seu código...
+
+        // Função para atualizar a interface do usuário com o tempo restante do turno
+        function updateTurnTimeUI() {
+            document.getElementById('timer-display').textContent = turnTimeLimit;
+        }
     </script>
 </body>
 </html>

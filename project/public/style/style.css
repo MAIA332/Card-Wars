@@ -142,7 +142,26 @@
     position: absolute;
 }
 
+.commander .card-i{
+    width: 65%;
+}
+
+.graveyard .card-i{
+    width: 65%;
+}
+
 .onboard{
     margin: 0 0 0 26%;
     width: 58%;
 }
+
+@keyframes card-drop-impact {
+    0% { transform: translateY(-100%); opacity: 0; }
+    60% { transform: translateY(10%); }
+    100% { transform: translateY(0%); opacity: 1; }
+}
+
+.card-drop-impact {
+    animation: card-drop-impact 0.5s ease forwards;
+}
+
