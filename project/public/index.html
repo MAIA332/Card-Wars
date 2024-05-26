@@ -16,14 +16,18 @@
 
         <div class="game-stats">
             <h4 id="turn-view">SEU TURNO</h4>
-            <div id="turn-timer">Tempo restante do turno: <span id="timer-display">60</span> segundos</div>
+            <div id="turn-timer">Tempo restante do turno: <span id="timer-display">180</span> segundos</div>
         </div>
 
         <button class="deck" id="deck" onclick="buy()">DECK</button>
+        <button class="view-graveyard" id="view-graveyard" onclick="openGraveyardCarousel()">Ver Cemitério</button>
+
         <button class="pass-turn" id="pass-turn" onclick="endTurn()">FIM DO TURNO</button>
         <!-- -------- BOARDS ZONE ------- -->
         <div class="Board player2-board non-interactive">
             <h4>Oponente</h4>
+            <div class="dropzone table onhand player2-hand" data-zone="playable" zone-type="onhand">
+            </div>
             <div class="dropzone table onboard" data-zone="playable" zone-type="onboard">
                 
             </div>
@@ -39,13 +43,13 @@
             <div class="dropzone table commander player1-commander" data-zone="playable" zone-type="commander">
                 
             </div>
+            <div class="dropzone table onhand player1-hand" data-zone="playable" zone-type="onhand">
+            </div>
         </div>
         <!-- -------- BOARDS ZONE ------- -->
         <div class="Board graveyard-board">
-            
-            <h4>Graveyard</h4>
-            <div class="dropzone table graveyard non-interactive" data-zone="graveyard" zone-type="graveyard"></div>
-
+            <h4>Graveyard <h4 id="grave-count">x0</h4></h4>
+            <div class="dropzone table graveyard " data-zone="graveyard" zone-type="graveyard"></div>
         </div>
         <!-- -------- END BOARDS ZONE ------- -->
         <div class="player-hud">
@@ -56,269 +60,340 @@
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
+   
 
-    <script>
-        var socket = io();
-        var currentTurn = null;
-        let myturnTimeLimit = 10; // Tempo limite do turno em segundos
-        let playerTurnTimer = null;
+    
+</body>
+<div id="graveyard-modal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeGraveyardCarousel()">&times;</span>
+        <div class="carousel" id="graveyard-carousel">
+            <!-- Carousel items will be dynamically inserted here -->
+        </div>
+    </div>
+</div>
 
-        socket.on('connect', function() {
-            current_user = { id: socket.id };
+</html>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+    var socket = io();
+    var currentTurn = null;
+    let myturnTimeLimit = 180; // Tempo limite do turno em segundos
+    let playerTurnTimer = null;
+
+    socket.on('connect', function() {
+        current_user = { id: socket.id };
+    });
+
+    document.querySelectorAll('.dropzone').forEach(dropzone => {
+        dropzone.addEventListener('dragover', function(event) {
+            event.preventDefault();
         });
+
+        dropzone.addEventListener('drop', function(event) {
+
+            event.preventDefault();
+
+            const cardId = event.dataTransfer.getData('cardId');
+            console.log(`CARD ID CLIENT: ${cardId}`);
+
+            const zone = this.getAttribute('data-zone');
+            const zoneType = this.getAttribute('zone-type')
+
+            const woodaudio = document.getElementById('woodOnTable');
+            woodaudio.currentTime = 0.1
+            woodaudio.play();
+            
+            socket.emit('jogada', { current_user,cardId,zone,zoneType });
+        });
+    });
+
+    socket.on('atualizarTabuleiro', function(cards) {
+
+        console.log("CARDS: ", cards);
+
+        let mycards = cards.filter((card)=>card.idPlayer == current_user.id && card.zone != 'graveyard' && card.zoneType != 'commander')
+        let opponentCards = cards.filter((card)=>card.idPlayer!=current_user.id && card.zone != 'graveyard' && card.zoneType != 'commander')
+        let graveyardCards = cards.filter(card => card.zone == 'graveyard');
+        let myCommandersCard = cards.filter(card =>card.zoneType == 'commander' && card.idPlayer == current_user.id)
+        let opponentCommandersCards =cards.filter(card =>card.zoneType == 'commander' && card.idPlayer != current_user.id)
+
+        if (mycards && opponentCards) {
+            console.log("MINHAS CARTAS: ",mycards);
+            console.log("CARTAS DO OPONENTE: ",opponentCards);
+            console.log("CARTAS NO CEMITÉRIO: ", graveyardCards);
+            console.log("CARTA NA MINHA ZONA DE COMANDO: ",myCommandersCard);
+            console.log("CARTA MINHA ZONA DE COMANDO DO OPONENTE: ",opponentCommandersCards);
+        }
+        
+        let graveCounter = document.getElementById('grave-count');
+        graveCounter.innerText = `x${graveyardCards.length}`
+        console.log("NUMERO DE CARTAS NO CEMITÉRIO:",graveyardCards.length);
+
+        clearBoards()
+        renderCards(mycards, opponentCards, graveyardCards,myCommandersCard,opponentCommandersCards);
+
+    });
+
+    const icons = document.querySelectorAll('.icon');
+    let draggingIcon = null;
+
+    icons.forEach(icon => {
+        icon.addEventListener('dragstart', dragStart);
+        icon.addEventListener('dragend', dragEnd);
+    });
+
+    function dragStart(event) {
+        event.dataTransfer.setData('cardId', this.id);
+        draggingIcon = this;
+        setTimeout(() => this.style.display = 'none', 0);
+    }
+
+    function dragEnd() {
+        draggingIcon = null;
+        this.style.display = 'block';
+    }
+
+    const dropzones = document.querySelectorAll('.dropzone');
+
+    dropzones.forEach(dropzone => {
+        dropzone.addEventListener('dragover', dragOver);
+        dropzone.addEventListener('dragenter', dragEnter);
+        dropzone.addEventListener('dragleave', dragLeave);
+        dropzone.addEventListener('drop', drop);
+    });
+
+    function dragOver(e) {
+        e.preventDefault();
+    }
+
+    function dragEnter(e) {
+        e.preventDefault();
+    }
+
+    function dragLeave() {
+        this.classList.remove('drag-enter');
+    }
+
+    function drop() {
+        if (draggingIcon) {
+            this.classList.remove('drag-enter');
+            this.appendChild(draggingIcon);
+        }
+    }
+
+    function renderCards(mycards, opponentCards, graveyardCards,myCommandersCard,opponentCommandersCards) {
+        mycards.forEach(card => {
+            renderCard(card, 'player1-board');
+        });
+
+        opponentCards.forEach(card => {
+            renderCard(card, 'player2-board');
+        });
+
+        graveyardCards.forEach(card => {
+            renderCard(card, 'graveyard-board');
+        });
+
+        myCommandersCard.forEach(card => {
+            renderCard(card, 'player1-commander');
+        });
+
+        opponentCommandersCards.forEach(card=>{
+            renderCard(card, 'player2-commander');
+        });
+    }
+
+    function renderCard(card, boardClass) {
+
+        let playerDropzone = document.querySelector(`.${boardClass} .dropzone`);
+        
+        if (boardClass == 'player1-commander' || boardClass == 'player2-commander') {
+            playerDropzone = document.querySelector(`.${boardClass}`);
+            
+        }
+
+        console.log("PLAYER DROPZONE TO DO: ",playerDropzone);
+
+        const card_template = document.createElement('div');
+        card_template.classList.add('icon', 'card-i');
+        card_template.setAttribute('draggable', 'true');
+        card_template.id = card.id;
+        card_template.innerHTML = `<h5>Card ${card.id}</h5>`;
+        card_template.addEventListener('dragstart', dragStart);
+        card_template.addEventListener('dragend', dragEnd);
+
+        if (boardClass == 'graveyard-board') {
+            // Offset each card slightly
+            const numCards = playerDropzone.children.length;
+           /*  card_template.style.top = `${numCards * 10}px`;
+            card_template.style.left = `${numCards * 10}px`; */
+            card_template.style.zIndex = numCards;
+        }
+
+        playerDropzone.appendChild(card_template);
+    }
+        
+    function clearBoards(){
+        const dropzones = document.querySelectorAll(`.dropzone`);
+        
+        for (const dropzone of dropzones) {
+            dropzone.innerHTML = ''
+        }
+    }
+
+    function buy(){
+        socket.emit("buy",{current_user})
+    }
+
+    function updateTurnUI() {
 
         document.querySelectorAll('.dropzone').forEach(dropzone => {
-            dropzone.addEventListener('dragover', function(event) {
-                event.preventDefault();
-            });
-
-            dropzone.addEventListener('drop', function(event) {
-
-                event.preventDefault();
-
-                const cardId = event.dataTransfer.getData('cardId');
-                console.log(`CARD ID CLIENT: ${cardId}`);
-
-                const zone = this.getAttribute('data-zone');
-                const zoneType = this.getAttribute('zone-type')
-
-                const woodaudio = document.getElementById('woodOnTable');
-                woodaudio.currentTime = 0.1
-                woodaudio.play();
-                
-                socket.emit('jogada', { current_user,cardId,zone,zoneType });
-            });
-        });
-
-        socket.on('atualizarTabuleiro', function(cards) {
-
-            console.log("CARDS: ", cards);
-
-            let mycards = cards.filter((card)=>card.idPlayer == current_user.id && card.zone != 'graveyard' && card.zoneType != 'commander')
-            let opponentCards = cards.filter((card)=>card.idPlayer!=current_user.id && card.zone != 'graveyard' && card.zoneType != 'commander')
-            let graveyardCards = cards.filter(card => card.zone == 'graveyard');
-            let myCommandersCard = cards.filter(card =>card.zoneType == 'commander' && card.idPlayer == current_user.id)
-            let opponentCommandersCards =cards.filter(card =>card.zoneType == 'commander' && card.idPlayer != current_user.id)
-
-            if (mycards && opponentCards) {
-                console.log("MINHAS CARTAS: ",mycards);
-                console.log("CARTAS DO OPONENTE: ",opponentCards);
-                console.log("CARTAS NO CEMITÉRIO: ", graveyardCards);
-                console.log("CARTA NA MINHA ZONA DE COMANDO: ",myCommandersCard);
-                console.log("CARTA MINHA ZONA DE COMANDO DO OPONENTE: ",opponentCommandersCards);
-            }
-
-            clearBoards()
-            renderCards(mycards, opponentCards, graveyardCards,myCommandersCard,opponentCommandersCards);
-
-        });
-
-        const icons = document.querySelectorAll('.icon');
-        let draggingIcon = null;
-
-        icons.forEach(icon => {
-            icon.addEventListener('dragstart', dragStart);
-            icon.addEventListener('dragend', dragEnd);
-        });
-
-        function dragStart(event) {
-            event.dataTransfer.setData('cardId', this.id);
-            draggingIcon = this;
-            setTimeout(() => this.style.display = 'none', 0);
-        }
-
-        function dragEnd() {
-            draggingIcon = null;
-            this.style.display = 'block';
-        }
-
-        const dropzones = document.querySelectorAll('.dropzone');
-
-        dropzones.forEach(dropzone => {
-            dropzone.addEventListener('dragover', dragOver);
-            dropzone.addEventListener('dragenter', dragEnter);
-            dropzone.addEventListener('dragleave', dragLeave);
-            dropzone.addEventListener('drop', drop);
-        });
-
-        function dragOver(e) {
-            e.preventDefault();
-        }
-
-        function dragEnter(e) {
-            e.preventDefault();
-        }
-
-        function dragLeave() {
-            this.classList.remove('drag-enter');
-        }
-
-        function drop() {
-            if (draggingIcon) {
-                this.classList.remove('drag-enter');
-                this.appendChild(draggingIcon);
-            }
-        }
-
-        function renderCards(mycards, opponentCards, graveyardCards,myCommandersCard,opponentCommandersCards) {
-            mycards.forEach(card => {
-                renderCard(card, 'player1-board');
-            });
-
-            opponentCards.forEach(card => {
-                renderCard(card, 'player2-board');
-            });
-
-            graveyardCards.forEach(card => {
-                renderCard(card, 'graveyard-board');
-            });
-
-            myCommandersCard.forEach(card => {
-                renderCard(card, 'player1-commander');
-            });
-
-            opponentCommandersCards.forEach(card=>{
-                renderCard(card, 'player2-commander');
-            });
-        }
-
-        function renderCard(card, boardClass) {
-
-            let playerDropzone = document.querySelector(`.${boardClass} .dropzone`);
+            const deck = document.getElementById('deck')
             
-            if (boardClass == 'player1-commander' || boardClass == 'player2-commander') {
-                playerDropzone = document.querySelector(`.${boardClass}`);
-                
-            }
-
-            console.log("PLAYER DROPZONE TO DO: ",playerDropzone);
-
-            const card_template = document.createElement('div');
-            card_template.classList.add('icon', 'card-i');
-            card_template.setAttribute('draggable', 'true');
-            card_template.id = card.id;
-            card_template.innerHTML = `<h5>Card ${card.id}</h5>`;
-            card_template.addEventListener('dragstart', dragStart);
-            card_template.addEventListener('dragend', dragEnd);
-
-            playerDropzone.appendChild(card_template);
-        }
-            
-        function clearBoards(){
-            const dropzones = document.querySelectorAll(`.dropzone`);
-            
-            for (const dropzone of dropzones) {
-                dropzone.innerHTML = ''
-            }
-        }
-
-        function buy(){
-            socket.emit("buy",{current_user})
-        }
-
-        function updateTurnUI() {
-
-            document.querySelectorAll('.dropzone').forEach(dropzone => {
-                const deck = document.getElementById('deck')
-                
-                if (current_user.id != currentTurn) {
-                    
-                    deck.disabled = true
-                    dropzone.classList.add('disabled');
-
-                } else {
-                    deck.disabled = false
-                    dropzone.classList.remove('disabled');
-                }
-            });
-            
-            const turnIndicator = document.getElementById('turn-view')
-
-            turnIndicator.innerText =  current_user.id == currentTurn?"SEU TURNO":"TURNO DO OPONENTE"
-
-            const endTurnButton = document.getElementById('pass-turn');
-            endTurnButton.disabled = current_user.id !== currentTurn;
-        }
-
-        socket.on('turnoAtual', function(turn) {
-            currentTurn = turn;
-            updateTurnUI(); // Atualize a interface do usuário com o novo turno
-
             if (current_user.id != currentTurn) {
-                stopPlayerTurnTimer();
-                console.log("TURNO DO OPONENTE", myturnTimeLimit);
+                
+                deck.disabled = true
+                dropzone.classList.add('disabled');
 
             } else {
-                myturnTimeLimit = 10; // Reinicie o tempo limite do turno para 10 segundos
-
-                updateTurnTimeUI(myturnTimeLimit);
-                
-                stopPlayerTurnTimer();
-                startPlayerTurnTimer(); // Inicie o contador de tempo do turno do jogador atual
-
-                console.log("MEU TURNO",myturnTimeLimit);
+                deck.disabled = false
+                dropzone.classList.remove('disabled');
             }
         });
-
-        function endTurn() {
-            // Pare o contador de tempo do turno
-            stopPlayerTurnTimer()
-            socket.emit("endTurn", { current_user });
-        }
-
-        socket.on('atualizaPlayers',function(players){
-            let lifeHud = document.getElementById('player-life')
-            let idHud = document.getElementById('player-id')
-            let circleHud = document.getElementById('player-circle')
-            let energyHud = document.getElementById('player-energy')
-            
-            console.log("MEU ID",current_user.id);
-            let myObj = players.filter((player)=>player.id == current_user.id)
-
-            console.log("OBJETO PLAYER: ",myObj);
-
-            if (myObj) {
-               lifeHud.innerText = myObj[0].life
-               /* idHud.innerText = current_user.id */
-               circleHud.innerText = myObj[0].circle
-               energyHud.innerText = myObj[0].energy
-            }
-        })
         
-        document.addEventListener('DOMContentLoaded', () => {
-            const playButton = document.getElementById('deck');
-            const audio = document.getElementById('flip-sound');
+        const turnIndicator = document.getElementById('turn-view')
 
-            playButton.addEventListener('click', () => {
-                audio.currentTime = 0.1
-                audio.play();
-            });
+        turnIndicator.innerText =  current_user.id == currentTurn?"SEU TURNO":"TURNO DO OPONENTE"
+
+        const endTurnButton = document.getElementById('pass-turn');
+        endTurnButton.disabled = current_user.id !== currentTurn;
+    }
+
+    socket.on('turnoAtual', function(turn) {
+        currentTurn = turn;
+        updateTurnUI(); // Atualize a interface do usuário com o novo turno
+
+        if (current_user.id != currentTurn) {
+            stopPlayerTurnTimer();
+            console.log("TURNO DO OPONENTE", myturnTimeLimit);
+
+        } else {
+            myturnTimeLimit = 180; // Reinicie o tempo limite do turno para 10 segundos
+
+            updateTurnTimeUI(myturnTimeLimit);
+            
+            stopPlayerTurnTimer();
+            startPlayerTurnTimer(); // Inicie o contador de tempo do turno do jogador atual
+
+            console.log("MEU TURNO",myturnTimeLimit);
+        }
+    });
+
+    function endTurn() {
+        // Pare o contador de tempo do turno
+        stopPlayerTurnTimer()
+        socket.emit("endTurn", { current_user });
+    }
+
+    socket.on('atualizaPlayers',function(players){
+        let lifeHud = document.getElementById('player-life')
+        let idHud = document.getElementById('player-id')
+        let circleHud = document.getElementById('player-circle')
+        let energyHud = document.getElementById('player-energy')
+        
+        console.log("MEU ID",current_user.id);
+        let myObj = players.filter((player)=>player.id == current_user.id)
+
+        console.log("OBJETO PLAYER: ",myObj);
+
+        if (myObj) {
+           lifeHud.innerText = myObj[0].life
+           /* idHud.innerText = current_user.id */
+           circleHud.innerText = myObj[0].circle
+           energyHud.innerText = myObj[0].energy
+        }
+    })
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        const playButton = document.getElementById('deck');
+        const audio = document.getElementById('flip-sound');
+
+        playButton.addEventListener('click', () => {
+            audio.currentTime = 0.1
+            audio.play();
         });
+    });
 
-        // Função para iniciar o contador de tempo do turno
-        function startPlayerTurnTimer() {
-            playerTurnTimer = setInterval(() => {
-                if (myturnTimeLimit > 0) {
-                    myturnTimeLimit--;
-                    updateTurnTimeUI(myturnTimeLimit); // Atualize a interface do usuário com o tempo restante do turno
-                } else {
-                    endTurn(); // Se o tempo limite do turno acabar, encerre o turno
-                }
-        }, 1000); // Intervalo de atualização do contador (1 segundo)
+    // Função para iniciar o contador de tempo do turno
+    function startPlayerTurnTimer() {
+        playerTurnTimer = setInterval(() => {
+            if (myturnTimeLimit > 0) {
+                myturnTimeLimit--;
+                updateTurnTimeUI(myturnTimeLimit); // Atualize a interface do usuário com o tempo restante do turno
+            } else {
+                endTurn(); // Se o tempo limite do turno acabar, encerre o turno
+            }
+    }, 1000); // Intervalo de atualização do contador (1 segundo)
 }
-        // Função para parar o contador de tempo do turno
-        function stopPlayerTurnTimer() {
-            clearInterval(playerTurnTimer);
+    // Função para parar o contador de tempo do turno
+    function stopPlayerTurnTimer() {
+        clearInterval(playerTurnTimer);
 
+    }
+
+    // Restante do seu código...
+
+    // Função para atualizar a interface do usuário com o tempo restante do turno
+    function updateTurnTimeUI(timerLimit) {
+        document.getElementById('timer-display').textContent = timerLimit;
+    }
+
+    function openGraveyardCarousel() {
+        const modal = document.getElementById('graveyard-modal');
+        modal.style.display = 'block';
+
+        const carousel = document.getElementById('graveyard-carousel');
+        carousel.innerHTML = ''; // Clear previous content
+
+        // Fetch graveyard cards
+        const graveyardCards = getGraveyardCards();
+        graveyardCards.forEach(card => {
+            const cardElement = document.createElement('div');
+            cardElement.classList.add('carousel-item');
+            cardElement.innerHTML = `<h5>Card ${card.id}</h5>`;
+            carousel.appendChild(cardElement);
+        });
+    }
+
+    function closeGraveyardCarousel() {
+        const modal = document.getElementById('graveyard-modal');
+        modal.style.display = 'none';
+    }
+
+    function getGraveyardCards() {
+        // This function should return an array of cards in the graveyard
+        // You can modify this function to get the actual graveyard cards from your game state
+        
+        let displayed_grave = []
+        let graveDropzone = document.querySelector(`.graveyard-board .dropzone`);
+        let numCardsGrave = graveDropzone.children;
+
+        for (const card of numCardsGrave) {
+            displayed_grave.push({
+                id:card.id
+            })
         }
+        return displayed_grave;
+    }
 
-        // Restante do seu código...
-
-        // Função para atualizar a interface do usuário com o tempo restante do turno
-        function updateTurnTimeUI(timerLimit) {
-            document.getElementById('timer-display').textContent = timerLimit;
+    window.onclick = function(event) {
+        const modal = document.getElementById('graveyard-modal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
         }
-    </script>
-</body>
-</html>
+    }
+
+</script>

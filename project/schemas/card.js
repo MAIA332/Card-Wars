@@ -4,7 +4,7 @@ class Card{
         this.id = this.uuidv4()
         this.idPlayer = idPlayer;
         this.zone = 'playable'; // Adicionando uma propriedade zone para rastrear onde a carta está
-        this.zoneType='onboard'
+        this.zoneType='onhand'
     }
 
     uuidv4() {

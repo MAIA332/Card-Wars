@@ -67,6 +67,9 @@
 .icon.card-i{
     background-color: var(--CardBackground);
     transition: z-index var(--smoothFPS) ease; 
+    -webkit-box-shadow: -11px 13px 14px 0px rgba(0,0,0,0.66);
+    -moz-box-shadow: -11px 13px 14px 0px rgba(0,0,0,0.66);
+    box-shadow: -11px 13px 14px 0px rgba(0,0,0,0.66);
 }
 
 .its-over {
@@ -84,12 +87,12 @@
 
 .deck{
     background-color: transparent;
-    width: 10%;
-    height: 250px;
+    width: 8%;
+    height: 200px;
     border: 1px solid var(--textColorBoard);
     position: absolute;
     cursor: pointer;
-    margin: 15% 0 0 3%;
+    margin: 20% 0 0 1%;
 }
 
 .pass-turn{
@@ -99,7 +102,7 @@
     border: 1px solid var(--textColorBoard);
     position: absolute;
     cursor: pointer;
-    margin: 35% 0 0 89%;
+    margin: 35% 0 0 88%;
 }
 
 .game-stats{
@@ -132,27 +135,52 @@
 
 .graveyard{
     margin: 0;
-    width: 100%;
+    width: 85%;
+    position: relative;
+
+}
+
+.graveyard .icon.card-i {
+    position: absolute;
+    margin: 15% 0 0 15%;
+    width: 65%;
 }
 
 .commander{
-    margin: 5% 0 0 14%;
-    width: 10%;
-    height: 280px;
+    margin: 5% 0 0 11%;
+    width: 7%;
+    height: 230px;
     position: absolute;
 }
 
 .commander .card-i{
-    width: 65%;
-}
-
-.graveyard .card-i{
-    width: 65%;
+    width: 95%;
 }
 
 .onboard{
-    margin: 0 0 0 26%;
-    width: 58%;
+    margin: 0 0 0 23%;
+    width: 60%;
+}
+
+.onhand{
+    margin: 0 0 0 23%;
+    width: 60%;
+    position: absolute;
+    border: 2px dashed #36fa00;
+}
+/* .player1-hand{
+    margin: 15% 0 0 23%;
+    height: 140px;
+} */
+
+.view-graveyard{
+    background-color: transparent;
+    width: 9.5%;
+    height: 40px;
+    border: 1px solid var(--textColorBoard);
+    position: absolute;
+    cursor: pointer;
+    margin: 28% 0 0 88%;
 }
 
 @keyframes card-drop-impact {
@@ -165,3 +193,58 @@
     animation: card-drop-impact 0.5s ease forwards;
 }
 
+#grave-count{
+    margin: 4% 0 0 70%;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Carousel styles */
+.carousel {
+    display: flex;
+    overflow-x: auto;
+}
+
+.carousel-item {
+    width: 9%;
+    height: 200px;
+    margin: 0 10px;
+    background-color: #ddd;
+    padding: 20px;
+    -webkit-box-shadow: -11px 13px 14px 0px rgba(0,0,0,0.66);
+    -moz-box-shadow: -11px 13px 14px 0px rgba(0,0,0,0.66);
+    box-shadow: -11px 13px 14px 0px rgba(0,0,0,0.66);
+}
