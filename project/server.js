@@ -118,7 +118,7 @@ io.on("connection", (socket) => {
                 cards[movedCardIndex].zoneType = 'commander'
 
                 console.log(`A CARTA DO ÍNDICE ${movedCardIndex} FOI MOVIDA PARA ${data.zoneType} QUE POSSUI A PROPRIEDADE ${data.zone} PELO JOGADOR: ${data.current_user.id}`);
-            }   
+            }
             
             else {
 

@@ -26,9 +26,9 @@
         <!-- -------- BOARDS ZONE ------- -->
         <div class="Board player2-board non-interactive">
             <h4>Oponente</h4>
-            <div class="dropzone table onhand player2-hand" data-zone="playable" zone-type="onhand">
+            <div class="dropzone table onhand player2-hand hand" data-zone="playable" zone-type="onhand">
             </div>
-            <div class="dropzone table onboard" data-zone="playable" zone-type="onboard">
+            <div class="dropzone table onboard player2-table" data-zone="playable" zone-type="onboard">
                 
             </div>
             <div class="dropzone table commander player2-commander" data-zone="playable" zone-type="commander">
@@ -38,12 +38,12 @@
         <!-- -------- BOARDS ZONE ------- -->
         <div class="Board player1-board">
             <h4>Você</h4>
-            <div class="dropzone table onboard" data-zone="playable" zone-type="onboard">
+            <div class="dropzone table onboard player1-table" data-zone="playable" zone-type="onboard">
             </div>
             <div class="dropzone table commander player1-commander" data-zone="playable" zone-type="commander">
                 
             </div>
-            <div class="dropzone table onhand player1-hand" data-zone="playable" zone-type="onhand">
+            <div class="dropzone table onhand player1-hand hand" data-zone="playable" zone-type="onhand">
             </div>
         </div>
         <!-- -------- BOARDS ZONE ------- -->
@@ -114,11 +114,13 @@
 
         console.log("CARDS: ", cards);
 
-        let mycards = cards.filter((card)=>card.idPlayer == current_user.id && card.zone != 'graveyard' && card.zoneType != 'commander')
-        let opponentCards = cards.filter((card)=>card.idPlayer!=current_user.id && card.zone != 'graveyard' && card.zoneType != 'commander')
+        let mycards = cards.filter((card)=>card.idPlayer == current_user.id && card.zone != 'graveyard' && card.zoneType != 'commander' && card.zoneType == "onboard")
+        let opponentCards = cards.filter((card)=>card.idPlayer!=current_user.id && card.zone != 'graveyard' && card.zoneType != 'commander' && card.zoneType == "onboard")
         let graveyardCards = cards.filter(card => card.zone == 'graveyard');
         let myCommandersCard = cards.filter(card =>card.zoneType == 'commander' && card.idPlayer == current_user.id)
         let opponentCommandersCards =cards.filter(card =>card.zoneType == 'commander' && card.idPlayer != current_user.id)
+        let myhandsCards = cards.filter(card =>card.zone == 'playable' && card.idPlayer == current_user.id && card.zoneType == 'onhand')
+        let opponenthandsCards = cards.filter(card =>card.zone == 'playable' && card.idPlayer != current_user.id && card.zoneType == 'onhand')
 
         if (mycards && opponentCards) {
             console.log("MINHAS CARTAS: ",mycards);
@@ -126,6 +128,8 @@
             console.log("CARTAS NO CEMITÉRIO: ", graveyardCards);
             console.log("CARTA NA MINHA ZONA DE COMANDO: ",myCommandersCard);
             console.log("CARTA MINHA ZONA DE COMANDO DO OPONENTE: ",opponentCommandersCards);
+            console.log("CARTAS NA MINHA MÃO: ",myhandsCards);
+            console.log("CARTAS NA MÃO DO MEU OPONENTE: ",opponenthandsCards);
         }
         
         let graveCounter = document.getElementById('grave-count');
@@ -133,7 +137,7 @@
         console.log("NUMERO DE CARTAS NO CEMITÉRIO:",graveyardCards.length);
 
         clearBoards()
-        renderCards(mycards, opponentCards, graveyardCards,myCommandersCard,opponentCommandersCards);
+        renderCards(mycards, opponentCards, graveyardCards,myCommandersCard,opponentCommandersCards,myhandsCards,opponenthandsCards);
 
     });
 
@@ -184,7 +188,7 @@
         }
     }
 
-    function renderCards(mycards, opponentCards, graveyardCards,myCommandersCard,opponentCommandersCards) {
+    function renderCards(mycards, opponentCards, graveyardCards,myCommandersCard,opponentCommandersCards,myhandsCards,opponenthandsCards) {
         mycards.forEach(card => {
             renderCard(card, 'player1-board');
         });
@@ -204,13 +208,21 @@
         opponentCommandersCards.forEach(card=>{
             renderCard(card, 'player2-commander');
         });
+
+        myhandsCards.forEach(card=>{
+            renderCard(card, 'player1-hand');
+        });
+
+        opponenthandsCards.forEach(card=>{
+            renderCard(card, 'player2-hand');
+        });
     }
 
     function renderCard(card, boardClass) {
 
         let playerDropzone = document.querySelector(`.${boardClass} .dropzone`);
         
-        if (boardClass == 'player1-commander' || boardClass == 'player2-commander') {
+        if (boardClass == 'player1-commander' || boardClass == 'player2-commander' || boardClass == 'player1-hand' || boardClass == 'player2-hand') {
             playerDropzone = document.querySelector(`.${boardClass}`);
             
         }

@@ -47,7 +47,6 @@
     height: auto;
     border: 2px dashed #ccc;
     padding: 10px;
-    margin-bottom: 10px;
     display: flex;
 }
 
@@ -144,6 +143,7 @@
     position: absolute;
     margin: 15% 0 0 15%;
     width: 65%;
+    box-shadow: none    ;
 }
 
 .commander{
@@ -160,6 +160,11 @@
 .onboard{
     margin: 0 0 0 23%;
     width: 60%;
+    height: 240px;
+}
+
+.player2-table{
+    margin: 9.5% 0 0 23%;
 }
 
 .onhand{
@@ -168,10 +173,6 @@
     position: absolute;
     border: 2px dashed #36fa00;
 }
-/* .player1-hand{
-    margin: 15% 0 0 23%;
-    height: 140px;
-} */
 
 .view-graveyard{
     background-color: transparent;
@@ -221,7 +222,7 @@
 .close {
     color: #aaa;
     float: right;
-    font-size: 28px;
+    font-size: 26px;
     font-weight: bold;
 }
 
@@ -235,7 +236,7 @@
 /* Carousel styles */
 .carousel {
     display: flex;
-    overflow-x: auto;
+    overflow-x: scroll;
 }
 
 .carousel-item {
@@ -247,4 +248,26 @@
     -webkit-box-shadow: -11px 13px 14px 0px rgba(0,0,0,0.66);
     -moz-box-shadow: -11px 13px 14px 0px rgba(0,0,0,0.66);
     box-shadow: -11px 13px 14px 0px rgba(0,0,0,0.66);
+}
+
+.hand {
+    display: flex;
+    /* justify-content: center; */
+    /* align-items: center; */
+    height: 150px; /* Ajuste conforme necessário */
+}
+
+.player1-hand{
+    margin: 14% 0 0 23%;
+}
+
+.hand .card-i {
+    /* margin-left: -30px; */ /* Espaçamento entre as cartas */
+    transition: 0.2s ease-in-out;
+    height: 153px;
+}
+
+.hand .card-i:hover {
+    margin: -10% 0 0 3%;
+    height: 210px;
 }
