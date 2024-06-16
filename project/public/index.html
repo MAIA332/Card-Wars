@@ -28,7 +28,7 @@
             <h4>Oponente</h4>
             <div class="dropzone table onhand player2-hand hand" data-zone="playable" zone-type="onhand">
             </div>
-            <div class="dropzone table onboard player2-table" data-zone="playable" zone-type="onboard">
+            <div class="dropzone table player2-onboard onboard player2-table" data-zone="playable" zone-type="onboard">
                 
             </div>
             <div class="dropzone table commander player2-commander" data-zone="playable" zone-type="commander">
@@ -38,7 +38,7 @@
         <!-- -------- BOARDS ZONE ------- -->
         <div class="Board player1-board">
             <h4>Você</h4>
-            <div class="dropzone table onboard player1-table" data-zone="playable" zone-type="onboard">
+            <div class="dropzone table player1-onboard onboard player1-table" data-zone="playable" zone-type="onboard">
             </div>
             <div class="dropzone table commander player1-commander" data-zone="playable" zone-type="commander">
                 
@@ -114,8 +114,8 @@
 
         console.log("CARDS: ", cards);
 
-        let mycards = cards.filter((card)=>card.idPlayer == current_user.id && card.zone != 'graveyard' && card.zoneType != 'commander' && card.zoneType == "onboard")
-        let opponentCards = cards.filter((card)=>card.idPlayer!=current_user.id && card.zone != 'graveyard' && card.zoneType != 'commander' && card.zoneType == "onboard")
+        let mycards = cards.filter((card)=>card.idPlayer == current_user.id && card.zone != 'graveyard' && card.zoneType == "onboard")
+        let opponentCards = cards.filter((card)=>card.idPlayer!=current_user.id && card.zone != 'graveyard' && card.zoneType == "onboard")
         let graveyardCards = cards.filter(card => card.zone == 'graveyard');
         let myCommandersCard = cards.filter(card =>card.zoneType == 'commander' && card.idPlayer == current_user.id)
         let opponentCommandersCards =cards.filter(card =>card.zoneType == 'commander' && card.idPlayer != current_user.id)
@@ -190,11 +190,11 @@
 
     function renderCards(mycards, opponentCards, graveyardCards,myCommandersCard,opponentCommandersCards,myhandsCards,opponenthandsCards) {
         mycards.forEach(card => {
-            renderCard(card, 'player1-board');
+            renderCard(card, 'player1-onboard');
         });
 
         opponentCards.forEach(card => {
-            renderCard(card, 'player2-board');
+            renderCard(card, 'player2-onboard');
         });
 
         graveyardCards.forEach(card => {
@@ -222,18 +222,25 @@
 
         let playerDropzone = document.querySelector(`.${boardClass} .dropzone`);
         
-        if (boardClass == 'player1-commander' || boardClass == 'player2-commander' || boardClass == 'player1-hand' || boardClass == 'player2-hand') {
+        if (boardClass == 'player1-commander' || boardClass == 'player2-commander' || boardClass == 'player1-hand' || boardClass == 'player2-hand'|| boardClass == 'player1-onboard' || boardClass == 'player2-onboard') {
             playerDropzone = document.querySelector(`.${boardClass}`);
             
         }
 
-        console.log("PLAYER DROPZONE TO DO: ",playerDropzone);
+        console.log("PLAYER DROPZONE TO DO: ",playerDropzone.classList);
 
         const card_template = document.createElement('div');
         card_template.classList.add('icon', 'card-i');
         card_template.setAttribute('draggable', 'true');
         card_template.id = card.id;
-        card_template.innerHTML = `<h5>Card ${card.id}</h5>`;
+
+        if (boardClass == 'player2-hand') {
+            card_template.classList.add('card-hidden');
+        }
+        else{
+            card_template.innerHTML = `<h5>Card ${card.id}</h5>`;
+        }
+
         card_template.addEventListener('dragstart', dragStart);
         card_template.addEventListener('dragend', dragEnd);
 
