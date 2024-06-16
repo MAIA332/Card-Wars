@@ -3,6 +3,7 @@ import http from 'http';
 import { Server } from 'socket.io';
 import Card from './schemas/card.js'
 import Player from './schemas/player.js'
+import Deck from './deck_sample.js'
 
 // Setup
 const app = express();
@@ -85,7 +86,9 @@ io.on("connection", (socket) => {
     socket.on("buy", (data) => {
         console.log(`JOGADOR: ${data.current_user.id} COMPROU UMA CARTA`);
 
-        const card = new Card(data.current_user.id);
+        let random_card = getRandomCard(Deck)
+
+        const card = new Card(data.current_user.id,random_card.name,random_card.type,random_card.subtype,random_card.circulo,random_card.ataque,random_card.defesa,random_card.efeito,random_card.textoEfeito,random_card.imagem);
 
         console.log(`CARTA QUE FOI COMPRADA: ${card.id} E ATRIBUIDA PARA O JOGADOR: ${card.idPlayer} DURANTE O TURNO DE ${currentTurn}`);
 
@@ -150,6 +153,14 @@ io.on("connection", (socket) => {
         io.emit('turnoAtual', currentTurn);
     });
 });
+
+function getRandomCard(deck) {
+    // Gera um índice aleatório dentro do tamanho do array 'deck'
+    const randomIndex = Math.floor(Math.random() * deck.length);
+
+    // Retorna o card correspondente ao índice aleatório gerado
+    return deck[randomIndex];
+}
 
 // Static files
 app.use(express.static('public'));

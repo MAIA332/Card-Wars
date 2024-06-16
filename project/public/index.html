@@ -238,7 +238,7 @@
             card_template.classList.add('card-hidden');
         }
         else{
-            card_template.innerHTML = `<h5>Card ${card.id}</h5>`;
+            card_template.innerHTML = `<h5>${card.name}</h5><p>${card.textoEfeito}</p>`;
         }
 
         card_template.addEventListener('dragstart', dragStart);
